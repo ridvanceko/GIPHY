@@ -4,50 +4,115 @@
 <head>
   <meta charset="utf-8">
   <title>GIPHY</title>
-  
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+  </style>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
 
   <div class="container">
-    
 
-    
+
+
     <div id="buttons-view"></div>
 
-    <form id="movie-form">
-      <label for="movie-input">Add a player</label>
-      <input type="text" id="movie-input">
+    <form id="player-form">
+      <label for="player-input">Add a player</label>
+      <input type="text" id="player-input">
       <br>
-      <input id="add-movie" type="submit" value="Submit">
+      <input id="add-player" type="button" value="Submit">
     </form>
+    <div id="football-player"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script>
+    <script type="text/javascript">
 
-      // Creat input to add more giphys
-
-
+      var players = ["Zlatan", "Ronaldo", "Messi", "Neymar", "Hazard"];
 
 
-      // get the best 10 ranking giphy
+      function footballButtons() {
+        $("#buttons-view").empty();
+        for (var i = 0; i < players.length; i++) {
 
+          var btn = $("<button>");
+          // Adding a class of movie-btn to our button
+          btn.addClass("player-btn");
+          // Adding a data-attribute
+          btn.attr("data-name", players[i]);
+          // Providing the initial button text
+          btn.text(players[i]);
+          // Adding the button to the buttons-view div
+          $("#buttons-view").append(btn);
+        }
+      }
 
+      footballButtons();
 
+      $("#add-player").on("click", function () {
+        var player = $("#player-input").val().trim();
 
-      // try to pause the gifs
-      // data-state, data-still, data-animate
+        players.push(player);
+        footballButtons();
+      });
 
+      $(document).on("click", ".player-btn", getGIPHY);
 
-     
+      function getGIPHY() {
+        var playername = $(this).attr("data-name");
 
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+          playername + "&api_key=99Of6OAvdC6nkQZdKVUQSvc140bU8mi6&limit=5";
 
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        })
+          .then(function (response) {
+            console.log(queryURL + response);
+            var results = response.data;
+            for (var i = 0; i < results.length; i++) {
+              var playerDiv = $("<div>");
+              var p = $("<p>").text("Rating: " + results[i].rating);
+              var playerImage = $("<img>");
+              playerDiv.css("width", "30%");
+              playerImage.attr("src", results[i].images.fixed_height.url);
+              playerImage.attr("data-still", results[i].images.fixed_height_still.url);
+              playerImage.attr("data-animate", results[i].images.fixed_height.url);
+              playerImage.attr("data-type", "animate");
+              playerImage.addClass("player-gif");
+              playerDiv.append(p);
+              playerDiv.append(playerImage);
+              $("#football-player").prepend(playerDiv);
+            }
+          });
+      }
+
+      $(document).on("click", ".player-gif", pauseGif);
+
+      function pauseGif() {
+        var state = $(this).attr("data-type");
+        // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+        // Then, set the image's data-state to animate
+        // Else set src to the data-still value
+        if (state === "still") {
+          $(this).attr("src", $(this).attr("data-animate"));
+          $(this).attr("data-type", "animate");
+        } else {
+          $(this).attr("src", $(this).attr("data-still"));
+          $(this).attr("data-type", "still");
+        }
+      }
 
 
     </script>
-
-
-
 </body>
 
 </html>
