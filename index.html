@@ -13,6 +13,9 @@
     }
   </style>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
 
 <body>
@@ -25,94 +28,100 @@
     <div id="buttons-view"></div>
 
     <form id="player-form">
-      <label for="player-input">Add a player</label>
+      <label for="player-input">Add a player:</label>
       <input type="text" id="player-input">
       <br>
       <input id="add-player" type="button" value="Submit">
     </form>
-    <div id="football-player"></div>
+    <div id="football-player" class="row"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script type="text/javascript">
-
-      var players = ["Zlatan", "Ronaldo", "Messi", "Neymar", "Hazard"];
+  </div>
 
 
-      function footballButtons() {
-        $("#buttons-view").empty();
-        for (var i = 0; i < players.length; i++) {
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
 
-          var btn = $("<button>");
-          // Adding a class of movie-btn to our button
-          btn.addClass("player-btn");
-          // Adding a data-attribute
-          btn.attr("data-name", players[i]);
-          // Providing the initial button text
-          btn.text(players[i]);
-          // Adding the button to the buttons-view div
-          $("#buttons-view").append(btn);
-        }
+    var players = ["Zlatan", "Ronaldo", "Messi", "Neymar", "Hazard"];
+
+
+    function footballButtons() {
+      $("#buttons-view").empty();
+      for (var i = 0; i < players.length; i++) {
+
+        var btn = $("<button>");
+        // Adding a class of movie-btn to our button
+        btn.addClass("player-btn");
+        btn.addClass("btn btn-primary m-2");
+        // Adding a data-attribute
+        btn.attr("data-name", players[i]);
+        // Providing the initial button text
+        btn.text(players[i]);
+        // Adding the button to the buttons-view div
+        $("#buttons-view").append(btn);
       }
+    }
 
+    footballButtons();
+
+    $("#add-player").on("click", function () {
+      var player = $("#player-input").val().trim();
+
+      players.push(player);
       footballButtons();
+    });
 
-      $("#add-player").on("click", function () {
-        var player = $("#player-input").val().trim();
+    $(document).on("click", ".player-btn", getGIPHY);
 
-        players.push(player);
-        footballButtons();
-      });
+    function getGIPHY() {
+      var playername = $(this).attr("data-name");
 
-      $(document).on("click", ".player-btn", getGIPHY);
+      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+        playername + "&api_key=99Of6OAvdC6nkQZdKVUQSvc140bU8mi6&limit=5";
 
-      function getGIPHY() {
-        var playername = $(this).attr("data-name");
+      $.ajax({
+        url: queryURL,
+        method: "GET"
+      })
+        .then(function (response) {
+          console.log(queryURL + response);
+          var results = response.data;
+          for (var i = 0; i < results.length; i++) {
+            var playerDiv = $("<div>");
+            var p = $("<p>").text("Rating: " + results[i].rating);
+            var playerImage = $("<img>");
+            playerDiv.css("width", "30%");
+            playerImage.attr("src", results[i].images.fixed_height.url);
+            playerImage.attr("data-still", results[i].images.fixed_height_still.url);
+            playerImage.attr("data-animate", results[i].images.fixed_height.url);
+            playerImage.attr("data-type", "animate");
+            playerImage.addClass("player-gif");
+            playerDiv.append(p);
+            playerDiv.append(playerImage);
+            $("#football-player").prepend(playerDiv);
+          }
+        });
+    }
 
-        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
-          playername + "&api_key=99Of6OAvdC6nkQZdKVUQSvc140bU8mi6&limit=5";
+    $(document).on("click", ".player-gif", pauseGif);
 
-        $.ajax({
-          url: queryURL,
-          method: "GET"
-        })
-          .then(function (response) {
-            console.log(queryURL + response);
-            var results = response.data;
-            for (var i = 0; i < results.length; i++) {
-              var playerDiv = $("<div>");
-              var p = $("<p>").text("Rating: " + results[i].rating);
-              var playerImage = $("<img>");
-              playerDiv.css("width", "30%");
-              playerImage.attr("src", results[i].images.fixed_height.url);
-              playerImage.attr("data-still", results[i].images.fixed_height_still.url);
-              playerImage.attr("data-animate", results[i].images.fixed_height.url);
-              playerImage.attr("data-type", "animate");
-              playerImage.addClass("player-gif");
-              playerDiv.append(p);
-              playerDiv.append(playerImage);
-              $("#football-player").prepend(playerDiv);
-            }
-          });
+    function pauseGif() {
+      var state = $(this).attr("data-type");
+      // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+      // Then, set the image's data-state to animate
+      // Else set src to the data-still value
+      if (state === "still") {
+        $(this).attr("src", $(this).attr("data-animate"));
+        $(this).attr("data-type", "animate");
+      } else {
+        $(this).attr("src", $(this).attr("data-still"));
+        $(this).attr("data-type", "still");
       }
-
-      $(document).on("click", ".player-gif", pauseGif);
-
-      function pauseGif() {
-        var state = $(this).attr("data-type");
-        // If the clicked image's state is still, update its src attribute to what its data-animate value is.
-        // Then, set the image's data-state to animate
-        // Else set src to the data-still value
-        if (state === "still") {
-          $(this).attr("src", $(this).attr("data-animate"));
-          $(this).attr("data-type", "animate");
-        } else {
-          $(this).attr("src", $(this).attr("data-still"));
-          $(this).attr("data-type", "still");
-        }
-      }
+    }
 
 
-    </script>
+  </script>
+
+
 </body>
 
 </html>
